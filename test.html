@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Affichage de fichier GeoJSON avec Header, Cadre Vert, et Sélection</title>
+
+    <!-- Lien vers la bibliothèque Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+    <!-- Style pour la mise en page, le header, et le cadre vert de la carte -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Style pour le header */
+        header {
+            width: 100%;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            font-size: 24px;
+        }
+
+        /* Container pour la carte et les colonnes */
+        .container {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            margin-top: 20px; /* Ajout d'un espace entre le header et la carte */
+        }
+
+        /* Style pour les boutons à gauche */
+        .menu {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Agrandissement des boutons et ajout de la transition */
+        .menu button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 25px; /* Augmentation de la taille des boutons */
+            margin: 15px;
+            border: none;
+            cursor: pointer;
+            width: 180px; /* Augmentation de la largeur */
+            font-size: 18px; /* Agrandissement du texte */
+            transition: background-color 0.3s ease, transform 0.3s ease; /* Transition pour le hover */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Ajout d'une ombre pour plus de profondeur */
+        }
+
+        /* Style pour l'effet au survol */
+        .menu button:hover {
+            background-color: #45a049;
+            transform: scale(1.05); /* Agrandissement doux */
+        }
+
+        /* Style pour la carte avec un cadre vert */
+        #map {
+            height: 400px;
+            width: 600px;
+            margin: 0 20px;
+            position: relative; /* Pour que le logo se positionne par rapport à la carte */
+            border: 5px solid green; /* Cadre vert */
+        }
+
+        /* Style pour le logo avec positionnement absolu centré */
+        .logo {
+            position: absolute;
+            bottom: 10px; /* Placer le logo en bas */
+            left: 50%; /* Centrer horizontalement */
+            transform: translateX(-50%); /* Ajuster le centrage */
+            width: 200px; /* Ajustez la taille du logo ici (plus grand) */
+            z-index: 1000; /* S'assurer qu'il est au-dessus de la carte */
+        }
+
+        /* Style pour la section de description à droite */
+        .description {
+            padding: 20px;
+            max-width: 300px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Header avec le titre -->
+    <header>
+        Carte Interactive de Chefchaouen
+    </header>
+
+    <!-- Conteneur principal qui contient les boutons, la carte, et la description -->
+    <div class="container">
+
+        <!-- Menu de navigation avec les boutons à gauche -->
+        <div class="menu">
+            <button onclick="window.location.href='#menu'">Menu</button>
+            <button onclick="window.location.href='#info'">Info</button>
+            <button onclick="window.location.href='#contact'">Contact</button>
+        </div>
+
+        <!-- Section Carte au centre avec cadre vert -->
+        <div id="map"></div>
+
+        <!-- Section de description à droite -->
+        <div class="description">
+            <h2>Chefchaouen</h2>
+            <p>
+                Chefchaouen, également connue sous le nom de Chaouen, est une ville située dans les montagnes du Rif, au nord-ouest du Maroc.
+                Elle est célèbre pour ses bâtiments aux teintes bleues, créant une atmosphère unique et apaisante. Fondée en 1471, la ville possède
+                une riche histoire, influencée par diverses cultures, notamment espagnole et berbère.
+            </p>
+            <p>
+                En plus de son architecture pittoresque, Chefchaouen est une destination prisée des amateurs de nature, offrant des paysages 
+                montagneux à couper le souffle et de nombreuses possibilités de randonnées.
+            </p>
+        </div>
+    </div>
+
+    <!-- Ajout du logo IAV en position absolue -->
+    <img src="logo_iav.png" alt="Logo IAV" class="logo"> <!-- Assurez-vous que le fichier image est dans le même répertoire -->
+
+    <!-- Lien vers la bibliothèque Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+    <script>
+        // Initialisation de la carte centrée sur Chefchaouen
+        var chef = L.map('map').setView([35.1686, -5.2636], 11); // Coordonnées centrées sur Chefchaouen
+
+        // Ajouter une couche de tuiles (fond de carte)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(chef);
+
+        // Fonction pour définir le style des entités GeoJSON
+        function style(feature) {
+            return {
+                color: "#ff000", // Couleur rouge pour les limites
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.6
+            };
+        }
+
+        // Fonction pour changer le style lors de la sélection
+        function highlightFeature(e) {
+            var layer = e.target;
+            layer.setStyle({
+                color: '#ff7877', // Changer la couleur à orange clair
+                weight: 3,
+                opacity: 1,
+                fillOpacity: 0.7
+            });
+
+            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                layer.bringToFront();
+            }
+        }
+
+        // Fonction pour réinitialiser le style après la désélection
+        function resetHighlight(e) {
+            geojson.resetStyle(e.target);
+        }
+
+        // Fonction pour définir les interactions (mouseover, click)
+        function onEachFeature(feature, layer) {
+            layer.on({
+                click: highlightFeature, // Activer la mise en surbrillance au clic
+                mouseout: resetHighlight // Réinitialiser lorsque la souris quitte l'entité
+            });
+        }
+
+        // Charger et afficher un fichier GeoJSON avec style et interactions
+        var geojson;
+        fetch('test.geojson') // Assurez-vous que le fichier est dans le bon répertoire
+        .then(response => {
+            if (!response.ok) { // Vérifier si la réponse est correcte
+                throw new Error('Erreur réseau : ' + response.statusText); // Message d'erreur plus descriptif
+            }
+            return response.json(); // Convertir en JSON
+        })
+        .then(data => {
+            geojson = L.geoJSON(data, {
+                style: style, // Appliquer le style par défaut
+                onEachFeature: onEachFeature // Ajouter les interactions
+            }).addTo(chef);
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement du fichier GeoJSON :', error); // Gérer les erreurs
+        });
+
+        // Ajouter un cercle à Chefchaouen
+        var circle = L.circle([35.1686, -5.2636], {
+            color: 'blue',
+            fillColor: '#30f',
+            fillOpacity: 0.5,
+            radius: 500 // Rayon en mètres
+        }).addTo(chef);
+
+        // Ajouter un marqueur avec un popup
+        var marker = L.marker([35.1686, -5.2636]).addTo(chef);
+        marker.bindPopup("Bienvenue à Chefchaouen").openPopup();
+    </script>
+
+</body>
+</html>
